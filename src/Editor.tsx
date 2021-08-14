@@ -4,6 +4,8 @@ import {
     AppBar,
     Container,
     IconButton,
+    Paper,
+    TextField,
     Toolbar,
     Tooltip,
 } from '@material-ui/core'
@@ -11,7 +13,11 @@ import {
     MenuOpen as OpenIcon,
     Save as SaveIcon,
     Add as NewIcon,
+    TextFields as AddTextIcon,
+    Delete,
 } from '@material-ui/icons'
+import { fabric } from 'fabric'
+import { CompactPicker } from 'react-color'
 
 function download(filename: string, text: string) {
     const element = document.createElement('a')
@@ -29,9 +35,15 @@ function download(filename: string, text: string) {
     document.body.removeChild(element)
 }
 
+function useForceUpdate() {
+    const [value, setValue] = React.useState(0) // integer state
+    return () => setValue(value + 1) // update the state to force render
+}
+
 const Editor = () => {
     const { editor, onReady } = useFabricJSEditor()
     const [init, setInit] = React.useState(false)
+    const update = useForceUpdate()
 
     useEffect(() => {
         if (init) return
@@ -39,6 +51,8 @@ const Editor = () => {
             setInit(true)
         }
     }, [editor, init])
+
+    const obj = editor?.canvas?.getActiveObject() as any
 
     return (
         <div style={{ width: '100vw', height: '100vh' }}>
@@ -156,10 +170,31 @@ const Editor = () => {
                             <SaveIcon />
                         </IconButton>
                     </Tooltip>
+                    <Tooltip title="텍스트 추가">
+                        <IconButton
+                            color="inherit"
+                            onClick={() => {
+                                const text = new fabric.Text('Text', {
+                                    fontFamily: 'Noto Sans KR',
+                                    fill: '#000',
+                                    fontWeight: 500,
+                                })
+                                editor!.canvas.add(text)
+                            }}
+                        >
+                            <AddTextIcon />
+                        </IconButton>
+                    </Tooltip>
                 </Toolbar>
             </AppBar>
             <Container style={{ marginTop: 20 }}>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        gap: 10,
+                    }}
+                >
                     <div
                         style={{
                             border: '1px solid #000',
@@ -168,6 +203,89 @@ const Editor = () => {
                     >
                         <FabricJSCanvas onReady={onReady} />
                     </div>
+                </div>
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        marginTop: 10,
+                    }}
+                >
+                    <Paper style={{ padding: 10, display: 'inline-block' }}>
+                        {obj ? (
+                            <div>
+                                <div style={{ marginBottom: 10 }}>
+                                    <IconButton
+                                        onClick={() =>
+                                            editor!.canvas.remove(obj)
+                                        }
+                                    >
+                                        <Delete />
+                                    </IconButton>
+                                </div>
+                                {(() => {
+                                    switch (obj.type) {
+                                        case 'text':
+                                            return (
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: 10,
+                                                    }}
+                                                >
+                                                    <TextField
+                                                        label="텍스트"
+                                                        value={obj.text}
+                                                        onChange={(e) => {
+                                                            obj.text =
+                                                                e.target.value
+                                                            editor?.canvas?.renderAll()
+                                                            update()
+                                                        }}
+                                                    />
+                                                    <TextField
+                                                        label="굵기"
+                                                        value={obj.fontWeight}
+                                                        type="number"
+                                                        onChange={(e) => {
+                                                            obj.fontWeight =
+                                                                Number(
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            editor?.canvas?.renderAll()
+                                                            update()
+                                                        }}
+                                                    />
+                                                    <CompactPicker
+                                                        color={obj.fill}
+                                                        onChangeComplete={(
+                                                            c,
+                                                        ) => {
+                                                            obj.set({
+                                                                fill: c.hex,
+                                                            })
+                                                            editor!.canvas.renderAll()
+                                                            update()
+                                                        }}
+                                                    />
+                                                </div>
+                                            )
+                                        default:
+                                            return (
+                                                <div>
+                                                    지원되지 않는 오브젝트
+                                                    타입입니다
+                                                </div>
+                                            )
+                                    }
+                                })()}
+                            </div>
+                        ) : (
+                            '오브젝트를 선택해주세요'
+                        )}
+                    </Paper>
                 </div>
             </Container>
         </div>
