@@ -12,7 +12,6 @@ import {
     Save as SaveIcon,
     Add as NewIcon,
 } from '@material-ui/icons'
-import { fabric } from 'fabric'
 
 function download(filename: string, text: string) {
     const element = document.createElement('a')
