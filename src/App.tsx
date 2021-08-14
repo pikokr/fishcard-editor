@@ -1,10 +1,10 @@
 import React from 'react'
-import Intro from './Intro'
+import Editor from './Editor'
 
 const App = () => {
     return (
-        <div>
-            <Intro />
+        <div style={{ width: '100vw', height: '100vh' }}>
+            <Editor />
         </div>
     )
 }
