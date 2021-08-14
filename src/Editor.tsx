@@ -88,28 +88,10 @@ const Editor = () => {
 
                                                 editor.deleteAll()
 
-                                                fabric.Image.fromURL(
+                                                fCanvas.setBackgroundImage(
                                                     imageURL,
-                                                    (i) => {
-                                                        i.set({
-                                                            left: 0,
-                                                            top: 0,
-                                                            width: img.width,
-                                                            height: img.height,
-                                                            lockMovementX: true,
-                                                            lockMovementY: true,
-                                                            lockRotation: true,
-                                                            lockScalingFlip:
-                                                                true,
-                                                            lockScalingX: true,
-                                                            lockScalingY: true,
-                                                            lockSkewingX: true,
-                                                            lockSkewingY: true,
-                                                            lockUniScaling:
-                                                                true,
-                                                            hasControls: false,
-                                                        })
-                                                        fCanvas.add(i)
+                                                    () => {
+                                                        fCanvas.renderAll()
                                                     },
                                                 )
 
@@ -126,9 +108,36 @@ const Editor = () => {
                         </label>
                     </Tooltip>
                     <Tooltip title="열기">
-                        <IconButton color="inherit">
-                            <OpenIcon />
-                        </IconButton>
+                        <label htmlFor="open_input">
+                            <input
+                                type="file"
+                                id="open_input"
+                                accept=".json"
+                                style={{ display: 'none' }}
+                                onChange={async (event) => {
+                                    if (editor) {
+                                        const file = event.target.files![0]
+                                        if (file) {
+                                            const canvas = editor.canvas as any
+                                            const json = JSON.parse(
+                                                await file.text(),
+                                            )
+                                            canvas.setWidth(json.width)
+                                            canvas.setHeight(json.height)
+                                            canvas.loadFromJSON(
+                                                json.canvasData,
+                                                () => {
+                                                    canvas.renderAll()
+                                                },
+                                            )
+                                        }
+                                    }
+                                }}
+                            />
+                            <IconButton color="inherit" component="span">
+                                <OpenIcon />
+                            </IconButton>
+                        </label>
                     </Tooltip>
                     <Tooltip title="저장">
                         <IconButton
